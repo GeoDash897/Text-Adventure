@@ -47,5 +47,20 @@ createItem("stationGlass", {
       w.teleStationInside.discoveredButton = true;
     }
     msg("{cycleEnd:stationGlass:descs:state}");
+  },
+  smash: function(options) {
+    options.char.moveChar(new Exit("teleStationOutside", {dir:'out', origin:options.char.loc}));
   }
-}) 
+})
+
+createItem("stationButton", {
+  loc: "teleStationInside",
+  alias: "button",
+  synonyms: ["station button"],
+  scenery: true,
+})
+
+createRoom("teleStationOutside", {
+  headingAlias: "Terminal 5",
+  alias: "Terminal 5"
+})
