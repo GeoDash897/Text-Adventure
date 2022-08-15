@@ -7,6 +7,31 @@ createItem("player", PLAYER(), {
     let temp = "You look down at yourself, seeing two arms on the sides of your vision...|After realizing that you look a bit"
     + "...{i:strange}...staring down at your arms, you stop in an attempt to look more normal.";
     msg(temp);
+  },
+  hands: [null, null],
+  isInHands: function(item) {
+    for(let i = 0; i < this.hands.length; i++) {
+      if(this.hands[i] === item) {
+        return true;
+      }
+    }
+    return false;
+  },
+  getFreeSpace: function() {
+    let amount = 0;
+    for(let i = 0; i < this.hands.length; i++) {
+      if(this.hands[i] === null) {
+        amount++;
+      }
+    }
+    return amount;
+  },
+  removeItemFromHands: function(item) {
+    for(let i = 0; i < this.hands.length; i++) {
+      if(this.hands[i] === item) {
+        this.hands[i] = null;
+      }
+    }
   }
 })
 
@@ -63,4 +88,117 @@ createItem("stationButton", {
 createRoom("teleStationOutside", {
   headingAlias: "Terminal 5",
   alias: "Terminal 5"
+})
+
+//Creating a custom template- remember this is a function!
+const EQUIPPABLE = function() {
+  const res = Object.assign({}, TAKEABLE_DICTIONARY); //Using TAKEABLE_DICTIONARY as starting point for template object creation
+  res.equipped = false;
+  res.handCount = 1;
+  res.equipMsg = "You equip this item in your hands!";
+  res.equipFailMsg = "You can't equip this item as you don't have enough empty hands to hold it!";
+  res.afterCreationTakeable = res.afterCreation;//afterCreation function of TAKEABLE_DICTIONARY (Takeable Template)
+  res.afterCreation = function(o) {//function called when item is first created (like constructor)
+    o.afterCreationTakeable(o);//Run to construct properties of TAKEABLE_DICTIONARY
+    //function that adds verbs to dropdown list depending on context
+    o.verbFunctions.push(function(o, verbList) {
+      if(o.equipped) {
+        verbList.push("Unequip");
+      }
+      else {
+        verbList.push("Equip");
+      }
+    })
+  }
+  res.drop = function() {
+    if(this.equipped) {
+      w.player.removeItemFromHands(this);
+      this.equipped = false;
+    }
+    const options = {char:w.player, item:this} //move item back into the environment
+    this.moveToFrom(options, "loc", "char")
+    msg("You drop "+this.alias+".");
+  }
+  res.equip = function() {
+      let object = this;
+      const options = {char:w.player, item:this} 
+      const menuOptions = [
+        {
+          alias:"Left",//does not like the word left, might be reserved
+          properNoun:true,
+          positionToAdd: 0
+        },
+        {
+          alias:"Right",//does not like the word left, might be reserved
+          properNoun:true,
+          positionToAdd: 1
+        }
+      ]
+      if(w.player.isInHands(this)) {
+        msg("You are already holding this item in your hand(s)!");
+        return;
+      }
+      //Can't be equipped
+      if(this.handCount > w.player.getFreeSpace()) {
+        msg(this.equipFailMsg);
+      }
+      else {
+        //When two hands are empty
+        if(w.player.getFreeSpace() === 2) {
+          if(this.handCount === 2) {         
+            if(!this.isAtLoc(w.player)) {          
+              this.moveToFrom(options, "char", "loc")
+            }  
+            for(let i = 0; i < w.player.hands.length; i++) {
+              w.player.hands[i] = this;
+            }           
+            this.equipped = true;   
+            msg(this.equipMsg);
+          }
+          else if(this.handCount === 1) {
+            //Had to use drop down as text input caused a delay between code execution
+            showDropDown("In which hand would you like to equip this item?", menuOptions, function(result) {
+              if(!object.isAtLoc(w.player)) {//Can't use this in scope of function = returns undefined
+                object.moveToFrom(options, "char", "loc")
+              }
+              w.player.hands[result.positionToAdd] = object;
+              object.equipped = true;
+              msg("You equip this item in your "+result.alias.toLowerCase()+" hand!");
+            })
+          }        
+        }
+        else if(w.player.getFreeSpace() === 1) {
+          let freeSpace = 0;
+          //Find empty space and set it to the item
+          for(let i = 0; i < w.player.hands.length; i++) {
+            if(w.player.hands[i] === null) {
+              freeSpace = i;
+            }
+          }
+          w.player.hands[freeSpace] = this;
+          this.equipped = true;
+          msg("You equip this item in your remaining hand!");
+        }
+      }
+    }
+  res.unequip = function() {
+    if(this.isAtLoc(w.player) && !this.equipped) {
+      msg("This item is already unequipped and in your inventory!")
+    }
+    else if(!this.isAtLoc(w.player) && !this.equipped) {
+      msg("You can't equip this item as it is not in your inventory!")
+    }
+    else {
+      w.player.removeItemFromHands(this);
+      this.equipped = false;
+      msg("You remove this item from your hand(s) and put it back into your inventory!")
+    }
+  }
+  return res;
+}
+
+createItem("test", EQUIPPABLE(), {
+  loc: "teleStationInside",
+  alias: "Test",
+  handCount: 2,
 })

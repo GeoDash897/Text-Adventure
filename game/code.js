@@ -11,3 +11,19 @@ commands.unshift(new Cmd('Smash', {
     ],
     defmsg:"{nv:item:be:true} not something that you can destroy .",
 }))
+
+commands.unshift(new Cmd('Equip', {
+    regex:/^(?:equip) (.+)$/,
+    objects:[
+      {scope:parser.isHeld}
+    ],
+    defmsg:"{nv:item:be:true} not something that you can equip!",
+  }))
+  
+  commands.unshift(new Cmd('Unequip', {
+    regex:/^(?:unequip) (.+)$/,
+    objects:[
+      {scope:parser.isHeld}
+    ],
+    defmsg:"{nv:item:be:true} not something that you can unequip!",
+  }))
