@@ -95,8 +95,10 @@ const EQUIPPABLE = function() {
   const res = Object.assign({}, TAKEABLE_DICTIONARY); //Using TAKEABLE_DICTIONARY as starting point for template object creation
   res.equipped = false;
   res.handCount = 1;
-  res.equipMsg = "You equip this item in your hands!";
+  res.handName = "None";
+  res.equipMsg = "You equip this item in your hands.";
   res.equipFailMsg = "You can't equip this item as you don't have enough empty hands to hold it!";
+  res.unequipMsg = "You remove this item from your hand(s) and put it back into your inventory."
   res.afterCreationTakeable = res.afterCreation;//afterCreation function of TAKEABLE_DICTIONARY (Takeable Template)
   res.afterCreation = function(o) {//function called when item is first created (like constructor)
     o.afterCreationTakeable(o);//Run to construct properties of TAKEABLE_DICTIONARY
@@ -114,6 +116,7 @@ const EQUIPPABLE = function() {
     if(this.equipped) {
       w.player.removeItemFromHands(this);
       this.equipped = false;
+      this.handName = "None";
     }
     const options = {char:w.player, item:this} //move item back into the environment
     this.moveToFrom(options, "loc", "char")
@@ -153,6 +156,7 @@ const EQUIPPABLE = function() {
               w.player.hands[i] = this;
             }           
             this.equipped = true;   
+            this.handName = "both";
             msg(this.equipMsg);
           }
           else if(this.handCount === 1) {
@@ -163,11 +167,16 @@ const EQUIPPABLE = function() {
               }
               w.player.hands[result.positionToAdd] = object;
               object.equipped = true;
-              msg("You equip this item in your "+result.alias.toLowerCase()+" hand!");
+              object.handName = result.alias.toLowerCase();
+              let temp = object.equipMsg.replaceAll("[hands]", object.handName);
+              msg(temp);
             })
           }        
         }
         else if(w.player.getFreeSpace() === 1) {
+          if(!this.isAtLoc(w.player)) {          
+            this.moveToFrom(options, "char", "loc")
+          }
           let freeSpace = 0;
           //Find empty space and set it to the item
           for(let i = 0; i < w.player.hands.length; i++) {
@@ -177,7 +186,9 @@ const EQUIPPABLE = function() {
           }
           w.player.hands[freeSpace] = this;
           this.equipped = true;
-          msg("You equip this item in your remaining hand!");
+          this.handName = menuOptions[freeSpace].alias.toLowerCase();
+          let temp = this.equipMsg.replaceAll("[hands]", "remaining");
+          msg(temp);
         }
       }
     }
@@ -191,7 +202,8 @@ const EQUIPPABLE = function() {
     else {
       w.player.removeItemFromHands(this);
       this.equipped = false;
-      msg("You remove this item from your hand(s) and put it back into your inventory!")
+      let temp = object.equipMsg.replaceAll("[hands]", object.handName);
+      msg(temp)
     }
   }
   return res;
@@ -200,5 +212,13 @@ const EQUIPPABLE = function() {
 createItem("test", EQUIPPABLE(), {
   loc: "teleStationInside",
   alias: "Test",
+  handCount: 1,
+})
+
+createItem("test2", EQUIPPABLE(), {
+  loc: "teleStationInside",
+  alias: "gun",
   handCount: 2,
+  equipMsg: "With a flick of your wrist, you equip the gun into both of your hands.",
+  unequipMsg: "You remove the gun from your [hands] hand and put it back into your inventory."
 })
