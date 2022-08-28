@@ -9,7 +9,7 @@ commands.unshift(new Cmd('Smash', {
     objects:[
       {scope:parser.isHeld}
     ],
-    defmsg:"{nv:item:be:true} not something that you can destroy .",
+    defmsg:"{nv:item:be:true} not something that you can destroy.",
 }))
 
 commands.unshift(new Cmd('Equip', {

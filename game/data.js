@@ -120,7 +120,7 @@ const EQUIPPABLE = function() {
     }
     const options = {char:w.player, item:this} //move item back into the environment
     this.moveToFrom(options, "loc", "char")
-    msg("You drop "+this.alias+".");
+    msg("You drop "+lang.getName(this, {article:DEFINITE})+".");
   }
   res.equip = function() {
       let object = this;
@@ -202,7 +202,7 @@ const EQUIPPABLE = function() {
     else {
       w.player.removeItemFromHands(this);
       this.equipped = false;
-      let temp = object.equipMsg.replaceAll("[hands]", object.handName);
+      let temp = this.unequipMsg.replaceAll("[hands]", this.handName);
       msg(temp)
     }
   }
@@ -218,7 +218,7 @@ createItem("test", EQUIPPABLE(), {
 createItem("test2", EQUIPPABLE(), {
   loc: "teleStationInside",
   alias: "gun",
-  handCount: 2,
-  equipMsg: "With a flick of your wrist, you equip the gun into both of your hands.",
+  handCount: 1,
+  equipMsg: "With a flick of your wrist, you equip the gun into your [hands] hand.",
   unequipMsg: "You remove the gun from your [hands] hand and put it back into your inventory."
 })
