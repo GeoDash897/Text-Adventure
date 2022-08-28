@@ -32,6 +32,18 @@ createItem("player", PLAYER(), {
         this.hands[i] = null;
       }
     }
+  },
+  displayInventory: function() {   
+    let itemDisplayName = ["", ""];
+    for(let i = 0; i < this.hands.length; i++) {
+      if(this.hands[i] == null) {
+        itemDisplayName[i] = "Empty";
+      }
+      else {
+        itemDisplayName[i] = this.hands[i].alias;
+      }
+    }
+    return "<td>Equipped in hands:</td><td>" + itemDisplayName[0]+ "<br><br>"+itemDisplayName[1]+"</td>";
   }
 })
 
