@@ -8,6 +8,3 @@ settings.warnings = "No warnings have been set for this game."
 settings.playMode = "dev"
 //td = html tag for table cell tr = html tag for row
 //By default, the status UI text is part of a table row already (child of tr)
-settings.status = [
-    function() { return w.player.displayInventory() }
-  ]
