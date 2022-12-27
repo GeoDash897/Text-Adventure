@@ -12,6 +12,7 @@ const lang = {
     // Regular Expressions for Commands
     
     // Meta commands
+    MetaHello:/^(?:hello|hi|yo)$|^\?$/,
     MetaHelp:/^help$|^\?$/,
     MetaHint:/^(?:hint|clue)s?$/,
     MetaCredits:/^(?:about|credits|version|info)$/,
@@ -53,7 +54,7 @@ const lang = {
     MetaTopicsNote:/^topics?$/,
 
     // Kind of meta    
-    Look:/^l$|^look$/,
+    Look:/^l$|^look$|^describe (?:room|the room|location|the location|where i am|here)$/,
     Exits:/^exits$/,
     Map:/^map$/,
     Inv:/^inventory$|^inv$|^i$/,
@@ -65,7 +66,7 @@ const lang = {
     PurchaseFromList:/^buy$|^purchase$/,
     
     // Use item
-    Examine:/^(?:examine|exam|ex|x) (.+)$/,
+    Examine:/^(?:examine|exam|ex|x|describe) (.+)$/,
     LookAt:/^(?:look at|look|l) (.+)$/,
     LookOut:/^(?:look out of|look out) (.+)$/,
     LookBehind:/^(?:look behind|check behind) (.+)$/,
@@ -204,6 +205,7 @@ const lang = {
     NpcUntieFrom:[/^(.+), ?(?:untie|unfasten|detach) (.+) (?:frm) (.+)$/, /^(?:tell|ask|instruct) (.+) to ?(?:untie|unfasten|detach) (.+) (?:from) (.+)$/],
     UseWith:/^(?:use) (.+) (?:with|on) (.+)$/,
 
+    LookExit:/^(?:look|peer|l|glance) (northwest|nw|north|n|northeast|ne|in|in|enter|i|up|u|west|w|east|e|out|out|exit|o|down|dn|d|southwest|sw|south|s|southeast|se)$/,
 
     PushExit:/^(push|pull|move|shift) (.+) (northwest|nw|north|n|northeast|ne|in|in|enter|i|up|u|west|w|east|e|out|out|exit|o|down|dn|d|southwest|sw|south|s|southeast|se)$/,
     NpcPushExit:[
@@ -227,10 +229,11 @@ const lang = {
     DebugWalkThrough:/^wt (.+)$/,
     DebugInspect:/^inspect (.+)$/,
     DebugInspectByName:/^inspect2 (.+)$/,
+    DebugWarpName:/^warp (.+)$/,
     DebugTest:/^test$/,
-    DebugInspectCommand:/^(?:cmd) (.+)$/,
-    DebugListCommands:/^cmds$/,
-    DebugListCommands2:/^cmds2$/,
+    DebugInspectCommand:/^(?:cmd|command) (.+)$/,
+    DebugListCommands:/^(?:cmd|command)s$/,
+    DebugListCommands2:/^(?:cmd|command)s2$/,
     DebugParserToggle:/^parser$/,
     DebugStats:/^stats?$/,
     DebugHighlight:/^highlight$/,
@@ -387,7 +390,7 @@ const lang = {
   topics_none_found:"No suggestions for what to ask or tell {nm:item:the} available.",
   topics_ask_list:"Some suggestions for what to ask {nm:item:the} about: {show:list}.",
   topics_tell_list:"Some suggestions for what to tell {nm:item:the} about: {show:list}.",
-  cannot_talk_to:"{nv:char:chat:true} to {nm:item:the} for a few moments, before releasing that {pv:item:be} not about to reply.",
+  cannot_talk_to:"{nv:char:chat:true} to {nm:item:the} for a few moments, before realizing that {pv:item:be} not about to reply.",
   no_topics:"{nv:char:have:true} nothing to talk to {nm:item:the} about.",
   not_able_to_hear:"Doubtful {nv:item:will} be interested in anything {sb:char} has to say.",
   npc_no_interest_in:"{nv:char:have:true} no interest in that subject.",
@@ -441,6 +444,8 @@ const lang = {
   // Movement
   go_successful:"{nv:char:head:true} {show:dir}.",
   not_that_way:"{nv:char:can't:true} go {show:dir}.",
+  no_look_that_way:"{nv:char:can't:true} see anything of interest {show:dir}.",
+  default_look_exit:"{nv:char:look:true} {show:dir}; definitely an exit that way.",
   can_go:"{nv:char:think:true} {pv:char:can} go {exits}.",
   cannot_go_in:"{pv:item:be:true} not something {nv:char:can} get inside.",
   cannot_go_out:"{pv:item:be:true} not something from which {nv:char:can} go out.",
@@ -478,6 +483,7 @@ const lang = {
   no_listen:"{pv:char:can't:true} hear anything of note here.",
   nothing_there:"{nv:char:be:true} sure there's nothing there.",
   nothing_inside:"There's nothing to see inside.",
+  not_open:"You have to open it first.",
   it_is_empty:"{pv:container:be:true} empty.",
   not_here:"{pv:item:be:true} not here.",
   char_has_it:"{multi}{nv:holder:have:true} {ob:item}.",
@@ -609,9 +615,17 @@ const lang = {
 
 
 
+  helloScript:function() {
+    metamsg("Hi!")
+    metamsg("If you are wondering what to do, typing HELP will give you a quick guide at how to get going. In fact, we can do that now...")
+    metamsg(">HELP")
+    wait()
+    return lang.helpScript()
+  },
+  
   helpScript:function() {
     if (settings.textInput) {
-      metamsg("Type commands in the command bar to interact with the world.");      
+      metamsg("Type commands at the prompt to interact with the world.");      
       metamsg("{b:Movement:} To move, use the eight compass directions (or just {class:help-eg:N}, {class:help-eg:NE}, etc.). When \"Num Lock\" is on, you can use the number pad for all eight compass directions. Also try - and + for {class:help-eg:UP} and {class:help-eg:DOWN}, / and * for {class:help-eg:IN} and {class:help-eg:OUT}.");
       metamsg("{b:Other commands:} You can also {class:help-eg:LOOK} (or just {class:help-eg:L} or 5 on the number pad), {class:help-eg:HELP} (or {class:help-eg:?}) or {class:help-eg:WAIT} (or {class:help-eg:Z} or the dot on the number pad). Other commands are generally of the form {class:help-eg:GET HAT} or {class:help-eg:PUT THE BLUE TEAPOT IN THE ANCIENT CHEST}. Experiment and see what you can do!");
       metamsg("{b:Using items: }You can use {class:help-eg:ALL} and {class:help-eg:ALL BUT} with some commands, for example {class:help-eg:TAKE ALL}, and {class:help-eg:PUT ALL BUT SWORD IN SACK}. You can also use pronouns, so {class:help-eg:LOOK AT MARY}, then {class:help-eg:TALK TO HER}. The pronoun will refer to the last subject in the last successful command, so after {class:help-eg:PUT HAT AND FUNNY STICK IN THE DRAWER}, '{class:help-eg:IT}' will refer to the funny stick (the hat and the stick are subjects of the sentence, the drawer was the object).");
@@ -639,6 +653,9 @@ const lang = {
           metamsg("You can also use the compass rose at the top to move around. Click 'Lk' to look at you current location, 'Z' to wait or '?' for help.")
         }
       }
+      if (settings.collapsibleSidePanes) {
+        metamsg("You can click on the eye symbol by the pane titles to toggle them being visible. This may be useful if there is a lot there, and entries are disappearing off the bottom of your screen, though you may miss that something is here if you are not careful!")
+      }
     }
     if (settings.additionalHelp !== undefined) {
       for (const s of settings.additionalHelp) metamsg(s)
@@ -655,7 +672,7 @@ const lang = {
     metamsg("{i:{show:settings:title} version {show:settings:version}} was written by {show:settings:author} using QuestJS (Quest 6) version {show:settings:questVersion}.", {settings:settings})
     if (settings.ifdb) metamsg("IFDB number: " + settings.ifdb)
     if (settings.thanks && settings.thanks.length > 0) {
-      metamsg("{i:Thanks to:} " + formatList(settings.thanks, {lastJoiner:lang.list_and}) + ".")
+      metamsg("{i:Thanks to:} " + formatList(settings.thanks, {lastSep:lang.list_and}) + ".")
     }
     if (settings.additionalAbout !== undefined) {
       for (const key in settings.additionalAbout) metamsg('{i:' + key + ':} ' + settings.additionalAbout[key])
@@ -793,6 +810,7 @@ const lang = {
     massnoun:{subjective:"it", objective:"it", possessive: "its", possAdj: "its", reflexive:"itself"},
     male:{subjective:"he", objective:"him", possessive: "his", possAdj: "his", reflexive:"himself"},
     female:{subjective:"she", objective:"her", possessive: "hers", possAdj: "her", reflexive:"herself"},
+    nonbinary:{subjective:"they", objective:"them", possessive: "theirs", possAdj: "their", reflexive:"themselves"},
     plural:{subjective:"they", objective:"them", possessive: "theirs", possAdj: "their", reflexive:"themselves"},
     firstperson:{subjective:"I", objective:"me", possessive: "mine", possAdj: "my", reflexive:"myself"},
     secondperson:{subjective:"you", objective:"you", possessive: "yours", possAdj: "your", reflexive:"yourself"},
@@ -976,7 +994,15 @@ const lang = {
     if (item.owner && options.possAdj && options.possAdj === w[item.owner]) {
       return options.possAdj.pronouns.possAdj + " "
     }
-    if (item.owner && !options.ignorePossessive) return lang.getName(w[item.owner], {possessive:true}) + " "
+    // If ignorePossessive is true, just skip this
+    // If it is 'noLink', 
+    if (item.owner && options.ignorePossessive !== true) {
+      const suboptions = {
+        possessive:true,
+        noLink:options.ignorePossessive === 'noLink'
+      }
+      return lang.getName(w[item.owner], suboptions) + " "
+    }
 
     // handle "the"
     if (type === DEFINITE) {
@@ -1066,26 +1092,103 @@ const lang = {
   // Returns the given number in words, so 19 would be returned as 'nineteen'.
   // Numbers uner -2000 and over 2000 are returned as a string of digits,
   // so 2001 is returned as '2001'.
-  toWords:function(number) {
-    if (typeof number !== "number") {
-      errormsg ("toWords can only handle numbers");
-      return number;
-    }
-    
-    let s = "";
+  toWordsMax:10000,
+  toWordsMillions:['', ' thousand', ' million', ' billion', ' trillion', ' quadrillion', ' quintillion', ' sextillion', 's eptillion', ' octillion', ' nonillion', ' decillion', ' undecillion', ' duodecillion'],
+  
+  toWords:function(number, noun) {
+    if (typeof number !== "number") return errormsg ("toWords can only handle numbers")
+    number = Math.round(number)
+    //if (number < -lang.toWordsMax || number > lang.toWordsMax) return number.toString()
+
+    let negative = false
+    if (number === 0) return noun ? 'zero ' + lang.getPlural(noun) : 'zero'
     if (number < 0) {
-      s = "minus ";
+      negative = true
       number = -number;
     }
-    if (number < 2000) {
+    
+    const parts = rChunkString(number, 3)
+    let count = 0
+    //let commaFlag = false
+    const result = []
+    
+    while (parts.length) {
+      const bit = lang._toWords1000(parts.pop())
+      if (bit !== 'zero') {
+        result.unshift(bit + lang.toWordsMillions[count])
+      }
+      count++
+    }
+    let s = formatList(result, {lastJoiner:'and', doNotSort:true})
+    const md = s.match(/ and /g)
+    if (md && md.length > 1) {
+      const pos = s.lastIndexOf(' and ')
+      s = s.substring(0, pos) + ',' + s.substring(pos)
+    }
+    
+    
+    if (negative) s = 'minus ' + s
+    if (!noun) return s
+    return s + ' ' + (number === 1 ? noun : lang.getPlural(noun))
+  },
+  
+  // For internal use, handles integers from 1 to 999 only
+  _toWords1000:function(number) {
+    let s = ''
+    let hundreds = Math.floor(number / 100);
+    number = number % 100;
+    if (hundreds > 0) {
+      s = s + lang.numberUnits[hundreds] + " hundred";
+      if (number > 0) {
+        s = s + " and ";
+      }
+    }
+    
+    if (number < 20) {
+      if (number !== 0 || s === "") {
+        s = s + lang.numberUnits[number];
+      }
+    }
+    else {
+      let units = number % 10;
+      let tens = Math.floor(number / 10) % 10;
+      s = s + lang.numberTens[tens - 2];
+      if (units !== 0) {
+        s = s + '-' + lang.numberUnits[units];
+      }
+    }
+    return (s);
+  },
+
+  //@DOC
+  // Returns the given number in words, as is conventionally said for a year,
+  // so 1924 with return "nineteen twenty-three".
+  // Throws an error if not a number and rounds to the nearest whole number.
+  // Does not properly handle zero - there was no year zero
+  toYear:function(number) {
+    if (typeof number !== "number") {
+      errormsg ("toYear can only handle numbers");
+      return number;
+    }
+    number = Math.round(number)
+    let s = ""
+    let negative = false
+    if (number < 0) {
+      negative = true
+      number = -number;
+    }
+    if (number < 10000) {
       let hundreds = Math.floor(number / 100);
+      log(hundreds)
       number = number % 100;
       if (hundreds > 0) {
-        s = s + lang.numberUnits[hundreds] + " hundred";
+        s += lang.numberUnits[hundreds]
         if (number > 0) {
-          s = s + " and ";
+          s += " "
         }
       }
+      log(s)
+      
       if (number < 20) {
         if (number !== 0 || s === "") {
           s = s + lang.numberUnits[number];
@@ -1103,8 +1206,10 @@ const lang = {
     else {
       s = number.toString();
     }
+    if (negative) s+= ' BCE'
     return (s);
   },
+
 
 
   //@DOC
@@ -1257,14 +1362,14 @@ lang.createVerb = function(name, options = {}) {
   if (options.ing === undefined) options.ing = name + 'ing'
   if (options.defmsg === undefined) options.defmsg = options.ing + " {nm:item:the} is not going to achieve much."
   if (options.defmsg === true) options.defmsg = "{pv:item:'be:true} not something you can do that with."
-  commands.unshift(new Cmd(name, {
+  new Cmd(name, {
     regex:new RegExp("^(?:" + options.words + ") (.+)$"),
     objects:[
       {scope:options.held ? parser.isHeld : parser.isHere},
     ],
     npcCmd:true,
     defmsg:options.defmsg
-  }))
+  })
 }
 
 
@@ -1274,7 +1379,7 @@ lang.createVerbWith = function(name, options = {}) {
   if (options.ing === undefined) options.ing = name + 'ing'
   if (options.defmsg === undefined) options.defmsg = options.ing + " {nm:item:the} is not going to achieve much."
   if (options.defmsg === true) options.defmsg = "{pv:item:'be:true} not something you can do that with."
-  commands.unshift(new Cmd(name + "With", {
+  new Cmd(name + "With", {
     regexes:[
       new RegExp("^(?:" + options.words + ") (.+) (?:using|with) (.+)$"),
       { regex:new RegExp("^(?:use|with|using) (.+) to (?:" + options.words + ") (.+)$"), mod:{reverse:true}},
@@ -1288,8 +1393,26 @@ lang.createVerbWith = function(name, options = {}) {
     npcCmd:true,
     withScript:true,
     defmsg:options.defmsg
-  }))
+  })
 }
+
+
+
+
+
+lang.questions = [
+  { q:'who am i', script:function() { parser.parse('look me'); return world.SUCCESS_NO_TURNSCRIPTS }},
+  { q:'who are (?:u|you)', script:function() { metamsg('Me? I am the parser. I am going to try to understand your commands, and then hopefully the protagonist will act on them in the game world.'); return world.SUCCESS_NO_TURNSCRIPTS }},
+  { q:'who is (?:|the )(?:player|protagonist)', script:function() { metamsg('The protagonist is a character in the game world, but a special one - one that you control directly. He or she is your proxy, acting on your behalf, so if you want to know what he or she is like, try WHO AM I?.'); return world.SUCCESS_NO_TURNSCRIPTS }},
+  { q:'what am i', script:function() { parser.parse('look me'); return world.SUCCESS_NO_TURNSCRIPTS }},
+  { q:'what (?:(?:have i got|do i have)(?:| on me| with me)|am i (?:carry|hold)ing)', script:function() { parser.parse('inv'); return world.SUCCESS_NO_TURNSCRIPTS }},
+  { q:'where am i', script:function() { parser.parse('look'); return world.SUCCESS_NO_TURNSCRIPTS }},
+  { q:'what do i do', script:function() { parser.parse('help'); return world.SUCCESS_NO_TURNSCRIPTS }},
+  { q:'(?:what do i do now|where do i go)', script:function() { parser.parse('hint'); return world.SUCCESS_NO_TURNSCRIPTS }},
+]
+
+
+
 
 
 

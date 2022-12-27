@@ -45,7 +45,7 @@ const EQUIPPABLE = function() {
       msg(lang.equip, options)
     }
     else {
-      options.list = formatList(equipped, {article:DEFINITE, joiner:lang.list_and})
+      options.list = formatList(equipped, {article:DEFINITE, lastSep:lang.list_and})
       msg(lang.unequipAndEquip, options)
       for (let el of equipped) el.equipped = false
     }
@@ -65,10 +65,9 @@ const EQUIPPABLE = function() {
   
 
 
-const WEAPON = function(damage, weaponType) {
+const WEAPON = function(damage) {
   const res = Object.assign({}, EQUIPPABLE())
   res.weapon = true
-  res.weaponType = weaponType
   res.damage = damage
   res.match = function(item) { return item.weapon }
   res.icon = () => 'weapon12'
@@ -79,8 +78,8 @@ const WEAPON = function(damage, weaponType) {
 
 
 
-const LIMITED_AMMO_WEAPON = function(damage, weaponType, ammo) {
-  const res = Object.assign({}, WEAPON(damage, weaponType))
+const LIMITED_AMMO_WEAPON = function(damage, ammo) {
+  const res = Object.assign({}, WEAPON(damage))
   res.ammo = ammo
   res.activeEffects.push(typeof ammo === 'number' ? "Ammo tracker" : "Ammo consumer")
   return res;
@@ -94,8 +93,7 @@ new Effect("Ammo consumer", {
     const item = w[source.ammo]
     if (!item) return errormsg("The weapon " + source.name + " has an unknown ammo set: " + source.ammo)
     if (item.countAtLoc(player.name) < 1) {
-      attack.msg("Out of ammo!", 1)
-      attack.abort = true
+      attack.abort(lang.outOfAmmo)
     }
     else {
       item.takeFrom(player.name, 1)
@@ -109,8 +107,7 @@ new Effect("Ammo tracker", {
   modifyOutgoingAttack:function(attack, source) {
     if (!source.equipped) return
     if (attack.weapon.ammo === 0) {
-      attack.msg("Out of ammo!", 1)
-      attack.abort = true
+      attack.abort(lang.outOfAmmo)
     }
     else {
       attack.weapon.ammo--
@@ -124,8 +121,7 @@ rpg.add(new Effect("Deteriorating", {
   // really needs to be on success only
   modifyOutgoingAttack:function(attack) {
     if (attack.weapon.ammo === 0) {
-      attack.msg("Out of ammo!")
-      attack.abort = true
+      attack.abort(lang.outOfAmmo)
     }
     else {
       attack.weapon.ammo--
@@ -134,8 +130,37 @@ rpg.add(new Effect("Deteriorating", {
 }))
 */
 
+
+const RING = function() {
+  const res = WEARABLE()
+  res.ring = true
+  //res.icon = () => 'ring12'
+  res.testWear = function(options) {
+    if (!this.testWearForRing(options)) return false
+    return true
+  }
+  res.testWearForRing = function(options) {
+    options.count = 0
+    for (const key in w) {
+      const o = w[key]
+      if (o.ring && o.loc === options.char.name && o.worn) options.count++
+    }
+    if (options.count < options.char.maxNumberOfRings) return true
+    msg(lang.ringTooMany, options)
+    return false
+  }
+  return res;
+}
+
+const AMULET = function() {
+  const res = WEARABLE(0, ['amulet'])
+  return res;
+}  
+
+
+
 const SHIELD = function(bonus) {
-  const res = Object.assign({}, EQUIPPABLE())
+  const res = EQUIPPABLE()
   res.shield = true
   res.shieldBonus = bonus
   res.match = function(item) { return item.shield }
@@ -152,6 +177,26 @@ const SPELLBOOK = function(list) {
   const res = Object.assign({}, TAKEABLE_DICTIONARY)
   res.spellbook = true
   res.spellsAvailableToLearn = list
+  res.spellsCanBeLearnt = function() { return this.loc === player.name }
+  res.examineX = ''
+  res.examine = function() {
+    msg(this.examineX + ' It contains the spells ' + formatList(this.spellsAvailableToLearn.map(el => '<i>' + el + '</i>'), {lastJoiner:lang.list_and}) + '.')
+  }
+  res.icon = () => 'spell12'
+  if (!res.identify) res.identify = function() { 
+    const list = formatList(this.spellsAvailableToLearn, {lastSep:lang.list_and})
+    return lang.spellbookIdentifyTemplate.replace('#', list)
+  }
+  return res 
+}
+
+
+
+const SPELLFONT = function(list) {
+  const res = {}
+  res.spellfont = true
+  res.spellsAvailableToLearn = list
+  res.spellsCanBeLearnt = function() { return this.loc === player.loc }
   res.examineX = ''
   res.examine = function() {
     msg(this.examineX + ' It contains the spells ' + formatList(this.spellsAvailableToLearn.map(el => '<i>' + el + '</i>'), {lastJoiner:lang.list_and}) + '.')
@@ -159,7 +204,6 @@ const SPELLBOOK = function(list) {
   res.icon = () => 'spell12'
   return res 
 }
-
 
 
 
@@ -194,7 +238,7 @@ const ONE_USE_ITEM = function(spellName, requiresTarget) {
 
 const SCROLL = function(spellName, requiresTarget) {
   const res = Object.assign({}, ONE_USE_ITEM(spellName, requiresTarget))
-  res.reportText = lang.castSpellFrom
+  res.msgAttack = lang.castSpellFrom
   res.msgDestroy = 'The scroll crumbles to dust.'
   return res 
 }
@@ -202,7 +246,7 @@ const SCROLL = function(spellName, requiresTarget) {
 
 const POTION = function(spellName) {
   const res = Object.assign({}, ONE_USE_ITEM(spellName, false))
-  res.reportText = lang.drinkPotion
+  res.msgAttack = lang.drinkPotion
   res.drink = function(options) { return this.use(options) }
   res.ingest = function(options) { return this.use(options) }
   return res 
@@ -211,7 +255,7 @@ const POTION = function(spellName) {
 
 
 
-
+/*
 
 createItem("weapon_unarmed", WEAPON(), {
   image:"fist",
@@ -219,8 +263,10 @@ createItem("weapon_unarmed", WEAPON(), {
   offensiveBonus:-2,
   alias:"unarmed",
   scenery:true,
+  abstract:true,
   isLocatedAt:function(loc, situation) {
     return (situation === world.PARSER || situation === world.ALL) && loc === player.name
   },
 })
 
+*/
