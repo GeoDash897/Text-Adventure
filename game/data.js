@@ -22,10 +22,14 @@ createItem("player", PLAYER(), {
 createRoom("teleStationInside", {
   headingAlias: "???",
   discoveredButton: false,
+  state:0,
+  descs:[
+    "You open up your eyes, dazed and confused about your current surroundings.|After rubbing the fuzziness out "
+      + "of your vision, you realize that you are in ",
+      "You are in "
+  ],
   desc: function() {
-    log("Description Teleportation Station Inside!");
-    let start = "{once:You open up your eyes, dazed and confused about your current surroundings.|After rubbing the fuzziness out "
-    + "of your vision, you realize that you are in :You are in }";
+    let start = "{cycleEnd:teleStationInside:descs:state}";
     let middle = "some kind of enclosed gold metal tube. There is a glass barrier in front of you, too dirty to see the adjacent room beyond "
     + "outside of various colored blurs, but just enough so that some light can filter through the space.|"
     + "You can't make out much of the tube in this lighting environment, but you can see two orb-like structures "
@@ -52,15 +56,15 @@ createItem("stationGlass", {
     "Due to the neglect of time however, there are various stains and cracks that now cover the glass, making it hard to see anything "+
     "beyond...| However, through this more intensive search, you are able to see a small control "+
     "panel to the left of the glass barrier that you did not make out earlier.",
-    "You try once more to see through the dirty glass pane with all of your might, but you only achieve a minor headache in the process.",
+    "You try once more to see through the dirty glass pane with all of your might, but you only achieve a minor headache in the process."
   ],
   examine: function() {
-    log("Examine Glass 1!");
     if(this.state === 0) {
       this.scenery = false;
       w.teleStationInside.discoveredButton = true;
     }
     msg("{cycleEnd:stationGlass:descs:state}");
+    //Everytime this is called, it increases state by 1; so when examine is initially run when game starts, state goes from -1 to 0
   },
   smash: function(options) {
     log("Smash!");
