@@ -85,3 +85,25 @@ createRoom("teleStationOutside", {
   alias: "Terminal 5",
   desc: "This room is ass"
 })
+
+createItem("teleStationAlpha", {
+  loc: "teleStationOutside",
+  alias: "Teleportation Station",
+  synonyms: ["station", "teleporter", "teleportation machine"],
+  glassState: -1,
+  glassDescriptions: [
+    "the glass plane you just shattered",
+    "a worn glass pane" 
+  ],
+  //Figure out way to include the condition if the player had already examined at least one of the three orbs in the capsule
+  examine: function() {
+    let examineStr = "A capsule like-structure stands in front of you, slightly overshadowing you in its presence. Its cold, unforgiving bronze " +
+    "exterior gleams dully in the low light, trying to shine against the surrounding area to no avail. Two slightly darker fins "+
+    "extend outwards from the sides of the tube down to the floor, like-wise to the ones on a rocket. There are some markings on "+
+    "the fins themselves, but it is hard for you to make them out without further examination.|Facing you are the remains of "+
+    "{cycleEnd:teleStationAlpha:glassDescriptions:glassState}."+
+    "Inside the tube, you can slightly make out three orb-like structures- one toward the top of the tube, and two toward the bottom left and right corners respectively."+
+    "|Above the glass pane lies a broken sign, irregularly flickering \"TELEPORTATION STATION\" into the space with a faint hum of electricity.";
+    msg(examineStr);
+  }
+})
