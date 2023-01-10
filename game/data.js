@@ -10,7 +10,7 @@
 */
 
 createItem("player", PLAYER(), {
-  loc:"teleStationInside",
+  loc:"rm_TeleStationInside",
   synonyms:['me', 'myself', 'player'],
   examine: function() {
     let temp = "You look down at yourself, seeing two arms on the sides of your vision...|After realizing that you look a bit"
@@ -19,7 +19,7 @@ createItem("player", PLAYER(), {
   }
 })
 
-createRoom("teleStationInside", {
+createRoom("rm_TeleStationInside", {
   headingAlias: "???",
   discoveredButton: false,
   state:0,
@@ -29,23 +29,23 @@ createRoom("teleStationInside", {
       "You are in "
   ],
   desc: function() {
-    let start = "{cycleEnd:teleStationInside:descs:state}";
+    let start = "{cycleEnd:rm_TeleStationInside:descs:state}";
     let middle = "some kind of enclosed gold metal tube. There is a glass barrier in front of you, too dirty to see the adjacent room beyond "
     + "outside of various colored blurs, but just enough so that some light can filter through the space.|"
     + "You can't make out much of the tube in this lighting environment, but you can see two orb-like structures "
     +"connected by wires toward the bottom left and right corners of your vision respectively.";
-    if(w.teleStationInside.discoveredButton) {
+    if(w.rm_TeleStationInside.discoveredButton) {
       middle += " Alongside this, there is a small control panel to the left of the barrier.";
     }
     return start+middle; //Need to return string so that it can be formatted in room Template function
   },
   smash: function(options) {
-    options.char.moveChar(new Exit("teleStationOutside", {dir:'out', origin:options.char.loc}));
+    options.char.moveChar(new Exit("rm_TeleStationOutside", {dir:'out', origin:options.char.loc}));
   }
 })
 
 createItem("stationGlass", {
-  loc: "teleStationInside",
+  loc: "rm_TeleStationInside",
   alias: "glass barrier",
   synonyms: ["glass"],
   scenery: true,
@@ -61,33 +61,41 @@ createItem("stationGlass", {
   examine: function() {
     if(this.state === 0) {
       this.scenery = false;
-      w.teleStationInside.discoveredButton = true;
+      w.rm_TeleStationInside.discoveredButton = true;
+      w.stationPanel.scenery = false;
     }
     msg("{cycleEnd:stationGlass:descs:state}");
     //Everytime this is called, it increases state by 1; so when examine is initially run when game starts, state goes from -1 to 0
   },
   smash: function(options) {
     log("Smash!");
-    options.char.moveChar(new Exit("teleStationOutside", {dir:'out', origin:options.char.loc}));
+    options.char.moveChar(new Exit("rm_TeleStationOutside", {dir:'out', origin:options.char.loc}));
   }
 })
 
-createItem("stationButton", {
-  loc: "teleStationInside",
-  alias: "button",
-  synonyms: ["station button"],
+createItem("stationPanel", {
+  loc: "rm_TeleStationInside",
+  alias: "panel",
+  synonyms: ["capsule panel"],
   scenery: true,
-  examine: "Testing!"
+  examine: "Panel Testing!"
 })
 
-createRoom("teleStationOutside", {
+createItem("stationButton", COMPONENT("stationPanel"),  {
+  alias: "button",
+  synonyms: ["panel button"],
+  scenery: true,
+  examine: "Button Testing!"
+})
+
+createRoom("rm_TeleStationOutside", {
   headingAlias: "Terminal 5",
   alias: "Terminal 5",
-  desc: "This room is ass"
+  desc: "Test description!"
 })
 
 createItem("teleStationAlpha", {
-  loc: "teleStationOutside",
+  loc: "rm_TeleStationOutside",
   alias: "Teleportation Station",
   synonyms: ["station", "teleporter", "teleportation machine"],
   glassState: -1,
@@ -106,4 +114,14 @@ createItem("teleStationAlpha", {
     "|Above the glass pane lies a broken sign, irregularly flickering \"TELEPORTATION STATION\" into the space with a faint hum of electricity.";
     msg(examineStr);
   }
+})
+
+createItem("teleStationFin", {
+  loc: "rm_TeleStationOutside",
+  alias: "fin",
+  examine: "With calculated purpose, you navigate your gaze over to one of the fins extending outwards from the tube. "+
+  "Its darker, more metallic bronze coloring helps to make the fin stand out from the rest of the capsule, "+
+  "but not in a way that seems out of place, even with its corroded texture.|An weathered engraving of a kneeling unicorn mare "+
+  "smiles back at you, seemingly combating against the flecks of diseased green of the fin with her sparks of magic. The figure reminds you "+
+  "faintly of someone, but you can't seem to put your finger on it...maybe a famous movie star perhaps?"
 })
